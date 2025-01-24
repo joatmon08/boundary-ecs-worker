@@ -33,14 +33,6 @@ resource "aws_ecs_task_definition" "worker" {
           value = var.boundary_auth_method_id
         },
         {
-          name  = "BOUNDARY_USERNAME"
-          value = var.boundary_username
-        },
-        {
-          name  = "BOUNDARY_PASSWORD"
-          value = var.boundary_password
-        },
-        {
           name  = "BOUNDARY_SCOPE_ID"
           value = var.boundary_scope_id
         },

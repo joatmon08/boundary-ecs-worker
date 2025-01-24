@@ -13,6 +13,12 @@ terraform {
 
 provider "aws" {
   region = var.region
+  default_tags {
+    tags = {
+      purpose = "boundary-ecs-worker-testing"
+      repo    = "boundary-ecs-worker"
+    }
+  }
 }
 
 provider "hcp" {}
