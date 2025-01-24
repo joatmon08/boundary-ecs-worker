@@ -1,6 +1,6 @@
-
-
-
+resource "aws_efs_file_system" "worker" {
+  creation_token = var.name
+}
 
 resource "aws_ecs_task_definition" "worker" {
   family = "boundary-worker"
@@ -12,7 +12,14 @@ resource "aws_ecs_task_definition" "worker" {
       memory       = 512
       essential    = true
       portMappings = []
-      command      = [],
+      command = [
+        "worker",
+        "config",
+        "--hcp-cluster-id=${local.boundary_cluster_id}",
+        "--public-addr=10.0.0.1",
+        "--tags=\"type=ecs,upstream\"",
+        "--output=/boundary/efs/worker.hcl"
+      ],
       secrets = [
         {
           name      = "BOUNDARY_USERNAME"
@@ -36,21 +43,27 @@ resource "aws_ecs_task_definition" "worker" {
           name  = "BOUNDARY_SCOPE_ID"
           value = var.boundary_scope_id
         },
-      ]
-
-    },
-    {
-      name      = "second"
-      image     = "service-second"
-      cpu       = 10
-      memory    = 256
-      essential = true
-      portMappings = [
+      ],
+      mountPoints = [
         {
-          containerPort = 443
-          hostPort      = 443
+          sourceVolume  = "boundary-worker-config"
+          containerPath = "/boundary/efs"
+          readOnly      = false
         }
       ]
+
     }
   ])
+
+  volume {
+    name = "boundary-worker-config"
+    efs_volume_configuration {
+      file_system_id = ""
+      root_directory = "/boundary/efs"
+      authorization_config {
+        access_point_id = ""
+        iam             = "ENABLED"
+      }
+    }
+  }
 }
